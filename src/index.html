@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>여기어때 - 오디언스 빌더</title>
+  <meta name="description" content="Rule-based + LLM 하이브리드 오디언스 빌더 - 여기어때 마케팅 플랫폼">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div>
+        <h1>🎯 오디언스 빌더</h1>
+        <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 0.25rem;">
+          여기어때 마케팅 타겟 세그먼트 생성 도구
+        </p>
+      </div>
+      
+      <div style="display: flex; gap: 1rem; align-items: center;">
+        <div class="mode-switcher">
+          <button class="mode-btn active" data-mode="hybrid">🔀 하이브리드</button>
+          <button class="mode-btn" data-mode="rules">📊 룰 기반</button>
+          <button class="mode-btn" data-mode="llm">🤖 AI 어시스턴트</button>
+        </div>
+        
+        <button class="btn btn-secondary" id="loadAudienceBtn">
+          📂 불러오기
+        </button>
+        
+        <button class="btn btn-primary" id="saveAudienceBtn">
+          💾 저장하기
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="app-main" id="mainContent">
+      <!-- Left Panel: Rule Builder -->
+      <div class="panel" id="rulePanel">
+        <div class="panel-header">
+          <h2 class="panel-title">필터 설정</h2>
+          <button class="btn btn-secondary btn-sm" id="clearFiltersBtn">🗑️ 초기화</button>
+        </div>
+
+        <!-- Behavioral Data Filters -->
+        <div class="filter-category" id="behavioralFilters">
+          <div class="category-title">
+            🔍 행동 및 여정 데이터
+          </div>
+          
+          <!-- Search Keywords -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>검색 키워드</span>
+            </div>
+            <div class="filter-control">
+              <select id="keywordCategory">
+                <option value="">카테고리 선택</option>
+                <option value="regions">지역</option>
+                <option value="accommodationTypes">숙박 유형</option>
+                <option value="themes">테마</option>
+              </select>
+              <div id="keywordPills" class="pill-container"></div>
+            </div>
+          </div>
+
+          <!-- Viewed Products -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>조회 상품군</span>
+            </div>
+            <div class="filter-control">
+              <select id="viewedProducts">
+                <option value="">전체</option>
+                <option value="프리미엄 라인 (블랙)">프리미엄 라인 (블랙)</option>
+                <option value="가성비 모텔">가성비 모텔</option>
+                <option value="비즈니스 호텔">비즈니스 호텔</option>
+                <option value="펜션">펜션</option>
+                <option value="리조트">리조트</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Cart/Wishlist -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>장바구니/찜 목록</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hasCartWishlist">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Recency -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>최근 접속일</span>
+            </div>
+            <div class="filter-control">
+              <div class="range-slider">
+                <input type="range" id="recencyRange" min="0" max="365" value="365">
+                <span class="range-value"><span id="recencyValue">365</span>일 이내</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transactional Data Filters -->
+        <div class="filter-category" id="transactionalFilters">
+          <div class="category-title">
+            💳 결제 및 이용 특성
+          </div>
+
+          <!-- Payment Frequency -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>연간 결제 횟수</span>
+            </div>
+            <div class="filter-control">
+              <div class="range-slider">
+                <input type="range" id="paymentFreqRange" min="0" max="50" value="0">
+                <span class="range-value"><span id="paymentFreqValue">0</span>회 이상</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- AOV -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>객단가 (평균)</span>
+            </div>
+            <div class="filter-control">
+              <div class="range-slider">
+                <input type="range" id="aovRange" min="0" max="200" value="0">
+                <span class="range-value"><span id="aovValue">0</span>만원 이상</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preferred Days -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>선호 숙박 요일</span>
+            </div>
+            <div class="filter-control">
+              <div id="preferredDaysPills" class="pill-container"></div>
+            </div>
+          </div>
+
+          <!-- Lead Time -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>리드 타임 (예약 시점)</span>
+            </div>
+            <div class="filter-control">
+              <select id="leadTime">
+                <option value="">전체</option>
+                <option value="당일">당일</option>
+                <option value="1-3일">1-3일</option>
+                <option value="4-7일">4-7일</option>
+                <option value="1-2주">1-2주</option>
+                <option value="2주-1개월">2주-1개월</option>
+                <option value="1개월 이상">1개월 이상</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- User Profile Filters -->
+        <div class="filter-category" id="profileFilters">
+          <div class="category-title">
+            👤 유저 프로필 및 컨텍스트
+          </div>
+
+          <!-- Active Region -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>주 활동 지역</span>
+            </div>
+            <div class="filter-control">
+              <div id="activeRegionPills" class="pill-container"></div>
+            </div>
+          </div>
+
+          <!-- Membership Tier -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>멤버십 등급</span>
+            </div>
+            <div class="filter-control">
+              <select id="membershipTier">
+                <option value="">전체</option>
+                <option value="블랙">블랙</option>
+                <option value="VIP">VIP</option>
+                <option value="골드">골드</option>
+                <option value="실버">실버</option>
+                <option value="일반">일반</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Device Type -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>접속 기기</span>
+            </div>
+            <div class="filter-control">
+              <select id="deviceType">
+                <option value="">전체</option>
+                <option value="iOS">iOS</option>
+                <option value="Android">Android</option>
+                <option value="Web (Desktop)">Web (Desktop)</option>
+                <option value="Web (Mobile)">Web (Mobile)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Life Stage -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>라이프스테이지</span>
+            </div>
+            <div class="filter-control">
+              <div id="lifeStagePills" class="pill-container"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cross-Sell Data Filters -->
+        <div class="filter-category" id="crossSellFilters">
+          <div class="category-title">
+            🌐 서비스 확장형 데이터
+          </div>
+
+          <!-- Space Rental -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>공간대여/레저 이용</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hasSpaceRental">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- International Intent -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>해외 여행 의도</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="hasInternationalIntent">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Transportation -->
+          <div class="filter-card">
+            <div class="filter-label">
+              <span>렌터카/교통 예약</span>
+            </div>
+            <div class="filter-control">
+              <div id="transportationPills" class="pill-container"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: LLM Chat -->
+      <div class="panel" id="llmPanel">
+        <div class="panel-header">
+          <h2 class="panel-title">AI 어시스턴트</h2>
+          <span class="badge badge-primary">Powered by Gemini</span>
+        </div>
+
+        <!-- Suggested Queries -->
+        <div class="suggested-queries" id="suggestedQueries">
+          <div class="suggested-query" data-query="제주도 프리미엄 숙박을 찾는 고객">
+            💎 제주도 프리미엄 숙박을 찾는 고객
+          </div>
+          <div class="suggested-query" data-query="최근 30일 내 구매이력이 있는 VIP 고객">
+            ⭐ 최근 30일 내 구매 VIP 고객
+          </div>
+          <div class="suggested-query" data-query="애견 동반 가능한 숙소를 자주 찾는 사용자">
+            🐕 애견 동반 선호 사용자
+          </div>
+          <div class="suggested-query" data-query="주말 호캉스 선호하며 평균 20만원 이상 지불">
+            🏨 주말 프리미엄 호캉스 고객
+          </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-container">
+          <div class="chat-messages" id="chatMessages">
+            <div class="chat-message">
+              <div class="message-avatar ai">AI</div>
+              <div class="message-content">
+                안녕하세요! 👋<br>
+                타겟 오디언스를 생성하고 싶으시다면 자연어로 설명해주세요.<br>
+                예: "제주도에서 풀빌라를 자주 찾는 VIP 고객"
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="chat-input-area">
+            <textarea 
+              id="chatInput" 
+              class="chat-input" 
+              placeholder="타겟 오디언스를 설명해주세요..."
+            ></textarea>
+            <button class="btn btn-accent" id="sendChatBtn">
+              ✨ 전송
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer: Audience Preview -->
+    <footer class="app-footer">
+      <div style="flex: 1;">
+        <h3 style="margin-bottom: 0.5rem;">예상 오디언스</h3>
+        <div style="display: flex; gap: 2rem; align-items: center;">
+          <div>
+            <span style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, var(--primary-light), var(--secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;" id="audienceSize">0</span>
+            <span style="color: var(--text-secondary); margin-left: 0.5rem;">명</span>
+          </div>
+          <div style="color: var(--text-secondary); font-size: 0.875rem;" id="audiencePercentage">
+            전체 유저의 0%
+          </div>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 1rem;">
+        <button class="btn btn-secondary">
+          📊 상세 분석
+        </button>
+        <button class="btn btn-accent" id="exportAudienceBtn">
+          📤 내보내기
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script type="module" src="app.js"></script>
+</body>
+</html>
